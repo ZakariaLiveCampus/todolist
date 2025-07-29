@@ -20,3 +20,4 @@ Ce projet est une application todolist découpée en 3 services :
 - Liste, ajout, modification, suppression de tâches
 - 2 pages côté frontend
 - Inversion de dépendances via un service React Context
+- Ajout de Jenkins

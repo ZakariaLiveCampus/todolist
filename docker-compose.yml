@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: todolist-db
+    restart: on-failure:3
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: todolist
+      MYSQL_USER: todolist_user
+      MYSQL_PASSWORD: todolistpassword
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: todolist-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: todolist_user
+      DB_PASSWORD: todolistpassword
+      DB_NAME: todolist
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+      - frontend
+
+  frontend:
+    build: ./frontend
+    container_name: todolist-frontend
+    restart: on-failure:3
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://todolist-backend:3000
+    networks:
+      - frontend
+
+volumes:
+  db_data:
+
+networks:
+  backend:
+    internal: true
+  frontend:
+    internal: false
